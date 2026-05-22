@@ -1,73 +1,68 @@
 // ======================
-// CONFIG (NO IMPORT - VERCEL SAFE)
+// CONFIG (HARD SAFE)
 // ======================
 const CONFIG = {
   SUPABASE_URL: "https://izzqhixtzxkjiwyquvri.supabase.co",
   SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6enFoaXh0enhraml3eXF1dnJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NTIwODEsImV4cCI6MjA5NTAyODA4MX0.5vrBFp2WTNFlxPkhuQgPDlhq5t20JZUETT3c_rD84aM",
-  WHATSAPP_PHONE: "77054959007",
   ADMIN_PASSWORD: "4958"
 };
 
 // ======================
-// INIT SUPABASE
+// SAFE CHECK - STOP IF DOM BROKEN
 // ======================
-const supabase = window.supabase.createClient(
-  CONFIG.SUPABASE_URL,
-  CONFIG.SUPABASE_KEY
-);
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
 
-// ======================
-// AUTH GATE
-// ======================
-const password = prompt("Введите пароль администратора");
+    const app = document.getElementById("app");
 
-if (password !== CONFIG.ADMIN_PASSWORD) {
-  document.body.innerHTML = "<h1 style='padding:40px;font-family:sans-serif;'>Доступ запрещен</h1>";
-  throw new Error("Unauthorized");
-}
+    if (!window.supabase) {
+      document.body.innerHTML = "<h2>Supabase CDN не загрузился</h2>";
+      return;
+    }
 
-// ======================
-// STATE
-// ======================
-let orders = [];
-let products = [];
-let activeTab = "orders";
+    const supabase = window.supabase.createClient(
+      CONFIG.SUPABASE_URL,
+      CONFIG.SUPABASE_KEY
+    );
 
-const app = document.getElementById("app");
+    // ======================
+    // AUTH
+    // ======================
+    const password = prompt("Admin password");
 
-// ======================
-// INIT
-// ======================
-init();
+    if (password !== CONFIG.ADMIN_PASSWORD) {
+      document.body.innerHTML = "<h1>Access denied</h1>";
+      return;
+    }
 
-async function init() {
-  await loadOrders();
-  await loadProducts();
-  render();
-}
+    // ======================
+    // LOAD DATA
+    // ======================
+    const { data: orders } = await supabase.from("orders").select("*");
 
-// ======================
-// LOAD ORDERS
-// ======================
-async function loadOrders() {
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*")
-    .order("created_at", { ascending: false });
+    const { data: products } = await supabase.from("products").select("*");
 
-  if (error) console.error(error);
+    // ======================
+    // RENDER SIMPLE UI FIRST (NO CRASH RISK)
+    // ======================
+    app.innerHTML = `
+      <div style="font-family:Arial;padding:20px">
+        <h1>CRM WORKING</h1>
 
-  orders = data || [];
-}
+        <h2>Orders: ${orders?.length || 0}</h2>
+        <h2>Products: ${products?.length || 0}</h2>
 
-// ======================
-// LOAD PRODUCTS
-// ======================
-async function loadProducts() {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false });
+        <p>Если это видно — Supabase работает</p>
+      </div>
+    `;
+
+  } catch (e) {
+    document.body.innerHTML = `
+      <h2>JS ERROR</h2>
+      <pre>${e.message}</pre>
+    `;
+  }
+});    .order("created_at", { ascending: false });
 
   if (error) console.error(error);
 
