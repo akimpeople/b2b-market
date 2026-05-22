@@ -1,72 +1,59 @@
-// ======================
-// CONFIG (HARD SAFE)
-// ======================
-const CONFIG = {
-  SUPABASE_URL: "https://izzqhixtzxkjiwyquvri.supabase.co",
-  SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6enFoaXh0enhraml3eXF1dnJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NTIwODEsImV4cCI6MjA5NTAyODA4MX0.5vrBFp2WTNFlxPkhuQgPDlhq5t20JZUETT3c_rD84aM",
-  ADMIN_PASSWORD: "4958"
-};
-
-// ======================
-// SAFE CHECK - STOP IF DOM BROKEN
-// ======================
 window.addEventListener("DOMContentLoaded", async () => {
+
+  const app = document.getElementById("app");
+
+  if (!app) {
+    document.body.innerHTML = "NO ROOT ELEMENT (#app)";
+    return;
+  }
+
+  if (!window.supabase) {
+    document.body.innerHTML = "SUPABASE CDN NOT LOADED";
+    return;
+  }
+
+  const CONFIG = {
+    SUPABASE_URL: "https://izzqhixtzxkjiwyquvri.supabase.co",
+    SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6enFoaXh0enhraml3eXF1dnJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NTIwODEsImV4cCI6MjA5NTAyODA4MX0.5vrBFp2WTNFlxPkhuQgPDlhq5t20JZUETT3c_rD84aM",
+    ADMIN_PASSWORD: "4958"
+  };
+
+  const supabase = window.supabase.createClient(
+    CONFIG.SUPABASE_URL,
+    CONFIG.SUPABASE_KEY
+  );
+
+  const password = prompt("Admin password");
+
+  if (password !== CONFIG.ADMIN_PASSWORD) {
+    document.body.innerHTML = "ACCESS DENIED";
+    return;
+  }
+
   try {
 
-    const app = document.getElementById("app");
-
-    if (!window.supabase) {
-      document.body.innerHTML = "<h2>Supabase CDN не загрузился</h2>";
-      return;
-    }
-
-    const supabase = window.supabase.createClient(
-      CONFIG.SUPABASE_URL,
-      CONFIG.SUPABASE_KEY
-    );
-
-    // ======================
-    // AUTH
-    // ======================
-    const password = prompt("Admin password");
-
-    if (password !== CONFIG.ADMIN_PASSWORD) {
-      document.body.innerHTML = "<h1>Access denied</h1>";
-      return;
-    }
-
-    // ======================
-    // LOAD DATA
-    // ======================
+    const { data: products } = await supabase.from("products").select("*");
     const { data: orders } = await supabase.from("orders").select("*");
 
-    const { data: products } = await supabase.from("products").select("*");
-
-    // ======================
-    // RENDER SIMPLE UI FIRST (NO CRASH RISK)
-    // ======================
     app.innerHTML = `
       <div style="font-family:Arial;padding:20px">
-        <h1>CRM WORKING</h1>
+        <h1>ADMIN OK</h1>
 
-        <h2>Orders: ${orders?.length || 0}</h2>
         <h2>Products: ${products?.length || 0}</h2>
+        <h2>Orders: ${orders?.length || 0}</h2>
 
-        <p>Если это видно — Supabase работает</p>
+        <p>Backend работает. Дальше будем чинить UI.</p>
       </div>
     `;
 
   } catch (e) {
     document.body.innerHTML = `
-      <h2>JS ERROR</h2>
+      <h2>ERROR</h2>
       <pre>${e.message}</pre>
     `;
   }
-});    .order("created_at", { ascending: false });
 
-  if (error) console.error(error);
-
-  products = data || [];
+});  products = data || [];
 }
 
 // ======================
